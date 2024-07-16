@@ -25,7 +25,9 @@ discriminator = keras.Sequential(
     name="discriminator",
 )
 
-print(discriminator)
+print()
+print(discriminator.summary())
+print()
 
 latent_dim = 128 # the latent space will be made of 128-dimensional vectors
 
@@ -39,13 +41,16 @@ generator = keras.Sequential(
         layers.Conv2DTranspose(256, kernel_size=4, strides=2, padding="same"),
         layers.LeakyReLU(alpha=0.2),
         layers.Conv2DTranspose(512, kernel_size=4, strides=2, padding="same"),
-        layers.Conv2D(3, kernel_size=5, padding="same", activation="tanh"),
-    ]
+        layers.Conv2D(3, kernel_size=5, padding="same", activation="sigmoid"),
+    ],
+    name="generator",
 )
 
-print(generator)
+print()
+print(generator.summary())
+print()
 
-epochs = 10
+epochs = 100
 
 print('Creating GAN...')
 gan = GAN(discriminator=discriminator,
@@ -54,8 +59,8 @@ gan = GAN(discriminator=discriminator,
 
 print('Compiling GAN...')
 gan.compile(
-    d_optimizer =keras.optimizers.Adam(learning_rate=1e-5),
-    g_optimizer =keras.optimizers.Adam(learning_rate=1e-5),
+    d_optimizer=keras.optimizers.Adam(learning_rate=1e-4),
+    g_optimizer=keras.optimizers.Adam(learning_rate=1e-4),
     loss_fn=keras.losses.BinaryCrossentropy(),
 )
 
@@ -66,8 +71,6 @@ history = gan.fit(
                      train, epochs=epochs,
                      callbacks=[GANMonitor(num_img=10, latent_dim=latent_dim)]
                  )
-
-
 
 gan_history = history.history
 
@@ -88,15 +91,17 @@ with open('train_g_loss.txt', 'w') as fp:
     print('Done writing train g loss scores')
     fp.close()
 
-history = gan.evaluate(
-    test,
-    callbacks=[GANMonitorTest(num_img=10, latent_dim=latent_dim)]
-)
-print(history)
-gan_history = history.history
+d_loss_history = []
+g_lost_history = []
 
-d_loss_history = gan_history['test_d_loss']
-g_loss_history = gan_history['test_g_loss']
+for data in test:
+    losses = gan.evaluate(
+                            data,
+                            callbacks=[GANMonitorTest(num_img=1, latent_dim=latent_dim)]
+                         )
+
+    d_loss_history.append(losses[0])
+    g_loss_history.append(losses[1])
 
 with open('test_d_loss.txt', 'w') as fp:
     for item in d_loss_history:

@@ -6,9 +6,9 @@ from tensorflow.python.client import device_lib
 import cv2
 
 def createDatasets():
-    print('Creating dataset...')
+    print('Creating training dataset...')
     training = keras.utils.image_dataset_from_directory(
-        "celeba",
+        "img_align_celeba",
         label_mode=None, # return images not labels
         validation_split=0.2,
         subset="training",
@@ -19,8 +19,9 @@ def createDatasets():
         smart_resize=True # by using smart_resize we preserve aspect ratio
     )
 
+    print('Creating testing dataset...')
     validation = keras.utils.image_dataset_from_directory(
-        "celeba",
+        "img_align_celeba",
         label_mode=None, # return images not labels
         validation_split=0.2,
         subset="validation",
